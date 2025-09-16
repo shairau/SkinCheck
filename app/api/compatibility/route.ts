@@ -90,21 +90,66 @@ function normalize(out: any, originalProducts: string[]): Compat {
     freq[originalKey] = "start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated";
   }
 
-  // Ensure compatibility analysis exists - generate if missing
-  if ((res.analysis?.pairs?.length || 0) === 0 && (res.products?.length || 0) > 1) {
-    // Generate basic compatibility pairs for all product combinations
+  // Ensure ALL compatibility pairs exist - generate missing ones
+  const expectedPairs = (res.products?.length || 0) * ((res.products?.length || 0) - 1) / 2;
+  const existingPairs = res.analysis?.pairs?.length || 0;
+  
+  if (expectedPairs > 0) {
+    // Create a set of existing pairs for quick lookup
+    const existingPairSet = new Set();
+    (res.analysis?.pairs || []).forEach(pair => {
+      const sortedPair = pair.between.sort().join("|");
+      existingPairSet.add(sortedPair);
+    });
+    
+    // Generate missing pairs
     for (let i = 0; i < (res.products?.length || 0); i++) {
       for (let j = i + 1; j < (res.products?.length || 0); j++) {
-        res.analysis?.pairs?.push({
-          between: [res.products?.[i]?.matched_product || "", res.products?.[j]?.matched_product || ""],
-          flags: [{
-            type: "ok_together",
-            severity: "low",
-            why: "Products appear compatible based on general formulation principles.",
-            sources: ["General skincare compatibility guidelines"]
-          }],
-          suggestions: ["Monitor for any irritation when using together."]
-        });
+        const product1 = res.products?.[i]?.matched_product || "";
+        const product2 = res.products?.[j]?.matched_product || "";
+        const sortedPair = [product1, product2].sort().join("|");
+        
+        if (!existingPairSet.has(sortedPair)) {
+          // Determine if this is a makeup-skincare interaction
+          const isMakeupSkincare = (
+            (product1.toLowerCase().includes('concealer') || 
+             product1.toLowerCase().includes('blush') || 
+             product1.toLowerCase().includes('mascara') ||
+             product1.toLowerCase().includes('foundation') ||
+             product1.toLowerCase().includes('lip')) &&
+            (product2.toLowerCase().includes('sunscreen') || 
+             product2.toLowerCase().includes('toner') || 
+             product2.toLowerCase().includes('cleanser') ||
+             product2.toLowerCase().includes('cream') ||
+             product2.toLowerCase().includes('serum'))
+          ) || (
+            (product2.toLowerCase().includes('concealer') || 
+             product2.toLowerCase().includes('blush') || 
+             product2.toLowerCase().includes('mascara') ||
+             product2.toLowerCase().includes('foundation') ||
+             product2.toLowerCase().includes('lip')) &&
+            (product1.toLowerCase().includes('sunscreen') || 
+             product1.toLowerCase().includes('toner') || 
+             product1.toLowerCase().includes('cleanser') ||
+             product1.toLowerCase().includes('cream') ||
+             product1.toLowerCase().includes('serum'))
+          );
+          
+          res.analysis?.pairs?.push({
+            between: [product1, product2],
+            flags: [{
+              type: isMakeupSkincare ? "makeup_skincare_interaction" : "ok_together",
+              severity: "low",
+              why: isMakeupSkincare 
+                ? "Makeup and skincare products can work well together when applied in the correct order."
+                : "Products appear compatible based on general formulation principles.",
+              sources: ["General skincare compatibility guidelines"]
+            }],
+            suggestions: isMakeupSkincare 
+              ? ["Apply skincare first, allow to absorb, then apply makeup."]
+              : ["Monitor for any irritation when using together."]
+          });
+        }
       }
     }
   }
@@ -195,13 +240,15 @@ export async function POST(request: NextRequest) {
               } \
             } \
             CONSISTENCY RULES: \
-            - ALWAYS analyze compatibility between ALL product pairs if more than 1 product \
+            - CRITICAL: You MUST analyze compatibility between EVERY SINGLE product pair. If there are N products, you must include exactly N*(N-1)/2 pairs in the analysis.pairs array \
             - ALWAYS include routine_plan.am and pm arrays (never empty) \
             - ALWAYS include global_observations (minimum 2 items) \
             - ALWAYS include suggestions (minimum 1 item) \
             - If unsure about ingredients, use \"unknown\" but still provide analysis \
             - For makeup products, analyze how they interact with skincare underneath \
             - Consider pilling, oxidization, and wear-time interactions \
+            - EXAMPLE: For 3 products [A, B, C], you must include pairs: A+B, A+C, B+C \
+            - EXAMPLE: For 4 products [A, B, C, D], you must include pairs: A+B, A+C, A+D, B+C, B+D, C+D \
             frequencies examples: \
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
