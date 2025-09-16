@@ -194,8 +194,6 @@ export async function POST(request: NextRequest) {
             MANDATORY REQUIREMENTS: \
             - NEVER use emojis in any response text \
             - ALWAYS use proper capitalization for product names and ingredients \
-            - If a product name seems incorrect or incomplete, research and provide the correct full product name \
-            - Use web search to verify product names and ingredient lists when needed \
             - For citations, ONLY include direct product/brand website links, NOT ingredient dictionary or general reference links \
             1) ALWAYS include ALL fields in this EXACT schema: \
             { \
@@ -256,11 +254,6 @@ export async function POST(request: NextRequest) {
             - EXAMPLE: For 3 products [A, B, C], you must include pairs: A+B, A+C, B+C \
             - EXAMPLE: For 4 products [A, B, C, D], you must include pairs: A+B, A+C, A+D, B+C, B+D, C+D \
             - IMPORTANT: Use the matched_product names consistently in all pairs to avoid duplicates \
-            PRODUCT NAME CORRECTION: \
-            - If user input has typos or incomplete names, research and provide the correct full product name \
-            - Use proper brand capitalization (e.g., 'The Ordinary' not 'the ordinary') \
-            - Include full product names (e.g., 'CeraVe Hydrating Facial Cleanser' not just 'cerave cleanser') \
-            - Verify product names through web search when uncertain \
             frequencies examples: \
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
@@ -311,6 +304,7 @@ export async function POST(request: NextRequest) {
     // Extract the JSON content from the OpenAI response
     if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
       try {
+        console.log('Raw AI response:', data.choices[0].message.content);
         const raw = JSON.parse(data.choices[0].message.content);
         let out: Compat;
         try {
