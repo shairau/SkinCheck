@@ -102,14 +102,14 @@ export default function Analyze() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Analyze Your Routine</h1>
           <p className="text-lg text-gray-600 text-pretty">
-            Enter your skincare products (comma separation) and click Analyze Routine.
+            Enter your skincare and makeup products.
           </p>
         </div>
 
         <Card className="bg-white shadow-lg rounded-2xl mb-8">
           <CardContent className="p-8">
             <Textarea
-              placeholder="CeraVe Hydrating Cleanser&#10;The Ordinary Niacinamide 10%&#10;Neutrogena Ultra Sheer Sunscreen"
+              placeholder="List..."
               value={products}
               onChange={(e) => setProducts(e.target.value)}
               className="min-h-32 mb-6 border-gray-200 rounded-xl"
