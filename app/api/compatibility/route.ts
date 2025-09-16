@@ -95,21 +95,21 @@ function normalize(out: any, originalProducts: string[]): Compat {
   const existingPairs = res.analysis?.pairs?.length || 0;
   
   if (expectedPairs > 0) {
-    // Create a set of existing pairs for quick lookup
+    // Create a set of existing pairs for quick lookup (normalize to lowercase)
     const existingPairSet = new Set();
     (res.analysis?.pairs || []).forEach(pair => {
-      const sortedPair = pair.between.sort().join("|");
-      existingPairSet.add(sortedPair);
+      const normalizedPair = pair.between.map(p => p.toLowerCase().trim()).sort().join("|");
+      existingPairSet.add(normalizedPair);
     });
     
     // Generate missing pairs
     for (let i = 0; i < (res.products?.length || 0); i++) {
       for (let j = i + 1; j < (res.products?.length || 0); j++) {
-        const product1 = res.products?.[i]?.matched_product || "";
-        const product2 = res.products?.[j]?.matched_product || "";
-        const sortedPair = [product1, product2].sort().join("|");
+        const product1 = res.products?.[i]?.matched_product || res.products?.[i]?.query || "";
+        const product2 = res.products?.[j]?.matched_product || res.products?.[j]?.query || "";
+        const normalizedPair = [product1.toLowerCase().trim(), product2.toLowerCase().trim()].sort().join("|");
         
-        if (!existingPairSet.has(sortedPair)) {
+        if (!existingPairSet.has(normalizedPair)) {
           // Determine if this is a makeup-skincare interaction
           const isMakeupSkincare = (
             (product1.toLowerCase().includes('concealer') || 
@@ -241,6 +241,7 @@ export async function POST(request: NextRequest) {
             } \
             CONSISTENCY RULES: \
             - CRITICAL: You MUST analyze compatibility between EVERY SINGLE product pair. If there are N products, you must include exactly N*(N-1)/2 pairs in the analysis.pairs array \
+            - ALWAYS use the EXACT \"matched_product\" names from the products array when creating pairs - do NOT use the original query names \
             - ALWAYS include routine_plan.am and pm arrays (never empty) \
             - ALWAYS include global_observations (minimum 2 items) \
             - ALWAYS include suggestions (minimum 1 item) \
@@ -249,6 +250,7 @@ export async function POST(request: NextRequest) {
             - Consider pilling, oxidization, and wear-time interactions \
             - EXAMPLE: For 3 products [A, B, C], you must include pairs: A+B, A+C, B+C \
             - EXAMPLE: For 4 products [A, B, C, D], you must include pairs: A+B, A+C, A+D, B+C, B+D, C+D \
+            - IMPORTANT: Use the matched_product names consistently in all pairs to avoid duplicates \
             frequencies examples: \
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
