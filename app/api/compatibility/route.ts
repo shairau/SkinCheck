@@ -64,12 +64,12 @@ function normalize(out: any, originalProducts: string[]): Compat {
   }
 
   // Ensure compatibility analysis exists - generate if missing
-  if (res.analysis.pairs.length === 0 && res.products.length > 1) {
+  if ((res.analysis?.pairs?.length || 0) === 0 && (res.products?.length || 0) > 1) {
     // Generate basic compatibility pairs for all product combinations
-    for (let i = 0; i < res.products.length; i++) {
-      for (let j = i + 1; j < res.products.length; j++) {
-        res.analysis.pairs.push({
-          between: [res.products[i].matched_product, res.products[j].matched_product],
+    for (let i = 0; i < (res.products?.length || 0); i++) {
+      for (let j = i + 1; j < (res.products?.length || 0); j++) {
+        res.analysis?.pairs?.push({
+          between: [res.products?.[i]?.matched_product || "", res.products?.[j]?.matched_product || ""],
           flags: [{
             type: "ok_together",
             severity: "low",
@@ -85,7 +85,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
   // Citation reminder if benefits/cautions exist but citations missing
   const missingCites = (res.products || []).some(p => (p.key_benefits.length > 0 || p.cautions.length > 0) && p.citations.length === 0);
   if (missingCites) {
-    res.analysis.suggestions.push("Some product claims lack citations; prefer brand pages or INCIDecoder when listing INCI or ingredient-based benefits.");
+    res.analysis?.suggestions?.push("Some product claims lack citations; prefer brand pages or INCIDecoder when listing INCI or ingredient-based benefits.");
   }
 
   return res;
