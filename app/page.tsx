@@ -1,118 +1,72 @@
-'use client';
-
-import { useState } from 'react';
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import Navbar from "@/components/navbar"
 
 export default function Home() {
-  const [products, setProducts] = useState('');
-  const [analysis, setAnalysis] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setAnalysis(null);
-
-    try {
-      const productsArray = products
-        .split('\n')
-        .map(p => p.trim())
-        .filter(p => p.length > 0);
-
-      if (productsArray.length === 0) {
-        setError('Please enter at least one product');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('/api/compatibility', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ products: productsArray }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to analyze routine');
-      }
-
-      const data = await response.json();
-      setAnalysis(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Skin Check
+    <div className="min-h-screen bg-orange-50">
+      <Navbar />
+
+      {/* Hero Section */}
+      <main className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 text-balance">
+            Unlock Your Routine's True Potential
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Analyze your skincare routine for compatibility and effectiveness. 
-            Get expert insights on product interactions and optimal usage patterns.
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
+            Discover how well your skincare products work together. Get personalized insights for a healthier skin.
           </p>
+          <Link href="/analyze">
+            <Button
+              size="lg"
+              className="bg-gray-800 hover:bg-[#ffd7e0] hover:text-gray-800 text-white px-8 py-3 text-lg rounded-full shadow-lg transition-all duration-300 border-2 border-transparent hover:border-gray-800"
+            >
+              Analyze Now
+            </Button>
+          </Link>
         </div>
 
-        {/* Form */}
-        <div className="bg-pink-pastel rounded-2xl p-8 mb-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label 
-                htmlFor="products" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Your Skincare Products
-              </label>
-              <textarea
-                id="products"
-                value={products}
-                onChange={(e) => setProducts(e.target.value)}
-                placeholder="Enter your skincare products, one per line:&#10;&#10;Example:&#10;CeraVe Foaming Facial Cleanser&#10;The Ordinary Niacinamide 10% + Zinc 1%&#10;Neutrogena Ultra Sheer Dry-Touch Sunscreen SPF 55"
-                className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-pastel focus:border-transparent resize-none"
-                disabled={loading}
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                Enter one product per line. Include the full product name for best results.
-              </p>
+        <div className="mb-16 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-[#ffd7e0] rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-800 rounded-full"></div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Smart Analysis</h3>
+              <p className="text-gray-600">Advanced algorithms analyze ingredient interactions</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-pastel hover:bg-green-200 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Analyzing...' : 'Analyze Routine'}
-            </button>
-          </form>
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-[#cfeee0] rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-800 rounded-full"></div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Personalized Insights</h3>
+              <p className="text-gray-600">Tailored recommendations for your unique routine</p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#ffd7e0] to-[#cfeee0] rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-800 rounded-full"></div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Healthier Skin</h3>
+              <p className="text-gray-600">Optimize your routine for better results</p>
+            </div>
+          </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-            <p className="text-red-800">{error}</p>
+        {/* Hero Image */}
+        <div className="w-full h-96 rounded-2xl overflow-hidden shadow-xl border-4 border-gradient-to-r from-[#ffd7e0] to-[#cfeee0] relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ffd7e0] to-[#cfeee0] p-1 rounded-2xl">
+            <div className="w-full h-full rounded-xl overflow-hidden">
+              <img
+                src="/skincare-products-bottles-serums-moisturizers-on-c.jpg"
+                alt="Skincare products arrangement"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
-        )}
-
-        {/* Analysis Results */}
-        {analysis && (
-          <div className="bg-gray-50 rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Analysis Results
-            </h2>
-            <pre className="bg-white p-6 rounded-lg overflow-auto text-sm text-gray-800 border border-gray-200">
-              {JSON.stringify(analysis, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-    </main>
-  );
+        </div>
+      </main>
+    </div>
+  )
 }

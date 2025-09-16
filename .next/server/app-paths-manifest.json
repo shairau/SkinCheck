@@ -1,4 +1,6 @@
 {
+  "/not-found": "app/not-found.js",
+  "/analyze/page": "app/analyze/page.js",
   "/page": "app/page.js",
   "/api/compatibility/route": "app/api/compatibility/route.js"
 }
