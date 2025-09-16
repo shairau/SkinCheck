@@ -96,14 +96,14 @@ export default function Analyze() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Analyze Your Routine</h1>
           <p className="text-lg text-gray-600 text-pretty">
-            Enter your skincare products (separate with commas or new lines) and click Analyze Routine.
+            Enter your skincare products (comma separation) and click Analyze Routine.
           </p>
         </div>
 
         <Card className="bg-white shadow-lg rounded-2xl mb-8">
           <CardContent className="p-8">
             <Textarea
-              placeholder="Enter your skincare products (separate with commas or new lines):&#10;&#10;Example:&#10;CeraVe Hydrating Cleanser, The Ordinary Niacinamide 10%, Neutrogena Ultra Sheer Sunscreen&#10;&#10;Or:&#10;CeraVe Hydrating Cleanser&#10;The Ordinary Niacinamide 10%&#10;Neutrogena Ultra Sheer Sunscreen"
+              placeholder="CeraVe Hydrating Cleanser&#10;The Ordinary Niacinamide 10%&#10;Neutrogena Ultra Sheer Sunscreen"
               value={products}
               onChange={(e) => setProducts(e.target.value)}
               className="min-h-32 mb-6 border-gray-200 rounded-xl"
@@ -328,8 +328,7 @@ export default function Analyze() {
         {/* Disclaimer */}
         <div className="mt-12 p-6 bg-gray-100 rounded-2xl">
           <p className="text-sm text-gray-600 text-center">
-            <strong>Educational only, not medical advice.</strong> Always consult with a dermatologist for personalized
-            skincare recommendations.
+      
           </p>
         </div>
       </main>
