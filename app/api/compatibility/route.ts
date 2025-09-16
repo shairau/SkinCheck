@@ -196,6 +196,7 @@ export async function POST(request: NextRequest) {
             - ALWAYS use proper capitalization for product names and ingredients \
             - If a product name seems incorrect or incomplete, research and provide the correct full product name \
             - Use web search to verify product names and ingredient lists when needed \
+            - For citations, ONLY include direct product/brand website links, NOT ingredient dictionary or general reference links \
             1) ALWAYS include ALL fields in this EXACT schema: \
             { \
               \"routine_rating\": { \
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
                   \"key_benefits\": string[] (MUST have at least 1 benefit), \
                   \"cautions\": string[] (can be empty array), \
                   \"ingredients_inci\": { \"names\": string[] } | \"unknown\", \
-                  \"citations\": string[] (MUST have at least 1 citation), \
+                  \"citations\": string[] (MUST have at least 1 citation - ONLY direct product/brand website links), \
                   \"skin_impact\": string (how this product affects skin health) \
                 } \
               ], \

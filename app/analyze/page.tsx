@@ -416,7 +416,7 @@ export default function Analyze() {
                   <ul className="space-y-2">
                     {results.analysis.makeup_skincare_synergy.map((synergy, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-blue-400 mr-2">💄</span>
+                        <span className="text-blue-400 mr-2">•</span>
                         <span className="text-gray-700">{synergy}</span>
                       </li>
                     ))}
