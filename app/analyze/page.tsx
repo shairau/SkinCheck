@@ -7,7 +7,13 @@ import { Textarea } from "@/components/ui/textarea"
 import Navbar from "@/components/navbar"
 
 interface AnalysisResult {
-  score: number
+  routine_rating: {
+    barrier_safety: number
+    irritation_risk: number
+    efficacy: number
+    compatibility: number
+    long_term_safety?: number
+  }
   score_rationale: string
   routine_plan: {
     am: string[]
@@ -133,18 +139,79 @@ export default function Analyze() {
                 </CardContent>
               </Card>
             )}
-            {/* Score */}
+            {/* Multi-Factor Rating */}
             <Card className="bg-white shadow-lg rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-2xl text-gray-800">Routine Health Score</CardTitle>
+                <CardTitle className="text-2xl text-gray-800">Multi-Factor Routine Rating</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-gray-800 mb-2">{results.score}/100</div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                  <div
-                    className="bg-gradient-to-r from-[#cfeee0] to-[#ffd7e0] h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${results.score}%` }}
-                  />
+                <div className="space-y-4 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Barrier Safety</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${(results.routine_rating.barrier_safety / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-800 font-semibold">{results.routine_rating.barrier_safety}/5</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Irritation Risk</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${(results.routine_rating.irritation_risk / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-800 font-semibold">{results.routine_rating.irritation_risk}/5</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Efficacy</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${(results.routine_rating.efficacy / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-800 font-semibold">{results.routine_rating.efficacy}/5</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Compatibility</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-purple-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${(results.routine_rating.compatibility / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-800 font-semibold">{results.routine_rating.compatibility}/5</span>
+                    </div>
+                  </div>
+                  
+                  {results.routine_rating.long_term_safety && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Long-term Safety</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-orange-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${(results.routine_rating.long_term_safety / 5) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-gray-800 font-semibold">{results.routine_rating.long_term_safety}/5</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <p className="text-gray-700">{results.score_rationale}</p>
               </CardContent>
@@ -182,9 +249,9 @@ export default function Analyze() {
                       <h4 className="font-semibold text-gray-800 mb-2">Usage Frequencies</h4>
                       <div className="space-y-2">
                         {Object.entries(results.routine_plan.frequencies).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
+                          <div key={key} className="space-y-1">
                             <span className="text-gray-700 font-medium">{key}:</span>
-                            <span className="text-gray-600">{value}</span>
+                            <div className="text-gray-600 ml-2">{value}</div>
                           </div>
                         ))}
                       </div>

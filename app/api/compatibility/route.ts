@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 type Compat = {
-  score: number;
+  routine_rating?: {
+    barrier_safety: number;
+    irritation_risk: number;
+    efficacy: number;
+    compatibility: number;
+    long_term_safety?: number;
+  };
   score_rationale?: string;
   routine_plan?: { am?: string[]; pm?: string[]; frequencies?: Record<string,string> };
   products?: Array<{
@@ -19,7 +25,19 @@ function normalize(out: any, originalProducts: string[]): Compat {
   
   // Ensure all required fields exist with defaults
   const res: Compat = {
-    score: typeof out.score === "number" ? Math.max(0, Math.min(100, Math.round(out.score))) : 75,
+    routine_rating: out.routine_rating ? {
+      barrier_safety: Math.max(0, Math.min(5, Math.round(out.routine_rating.barrier_safety || 3))),
+      irritation_risk: Math.max(0, Math.min(5, Math.round(out.routine_rating.irritation_risk || 2))),
+      efficacy: Math.max(0, Math.min(5, Math.round(out.routine_rating.efficacy || 3))),
+      compatibility: Math.max(0, Math.min(5, Math.round(out.routine_rating.compatibility || 3))),
+      long_term_safety: out.routine_rating.long_term_safety ? Math.max(0, Math.min(5, Math.round(out.routine_rating.long_term_safety))) : undefined
+    } : {
+      barrier_safety: 3,
+      irritation_risk: 2,
+      efficacy: 3,
+      compatibility: 3,
+      long_term_safety: 3
+    },
     score_rationale: out.score_rationale || "Analysis completed successfully.",
     routine_plan: {
       am: Array.isArray(out.routine_plan?.am) ? out.routine_plan.am : [],
@@ -122,7 +140,13 @@ export async function POST(request: NextRequest) {
             MANDATORY REQUIREMENTS: \
             1) ALWAYS include ALL fields in this EXACT schema: \
             { \
-              \"score\": number (0-100 ONLY, never 1-10), \
+              \"routine_rating\": { \
+                \"barrier_safety\": number (0-5 scale), \
+                \"irritation_risk\": number (0-5 scale, lower is better), \
+                \"efficacy\": number (0-5 scale), \
+                \"compatibility\": number (0-5 scale), \
+                \"long_term_safety\": number (0-5 scale, optional) \
+              }, \
               \"score_rationale\": string (2-4 sentences), \
               \"routine_plan\": { \
                 \"am\": string[] (MUST have at least 1 item), \
@@ -169,7 +193,12 @@ export async function POST(request: NextRequest) {
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
               \"sunscreen\": \"every AM\" } \
-            SCORING: Base 75, penalties: -25 (high), -12 (medium), -6 (low), bonuses: +5 (sunscreen/soothing)"
+            MULTI-FACTOR RATING (0-5 scale per category): \
+            - Barrier Safety: 5=excellent barrier support, 0=barrier damaging \
+            - Irritation Risk: 5=high risk, 0=very gentle \
+            - Efficacy: 5=highly effective for goals, 0=minimal benefit \
+            - Compatibility: 5=perfect layering, 0=conflicting ingredients \
+            - Long-term Safety: 5=sustainable for years, 0=unsafe long-term"
         },
         {
           role: "user",
