@@ -49,7 +49,12 @@ export default function Analyze() {
 
     setLoading(true)
     try {
-      const productList = products.split("\n").filter((p) => p.trim())
+      // Split by comma or newline, then clean up
+      const productList = products
+        .split(/[,\n]/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0)
+      
       const response = await fetch("/api/compatibility", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,14 +96,14 @@ export default function Analyze() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Analyze Your Routine</h1>
           <p className="text-lg text-gray-600 text-pretty">
-            Paste product names (one per line) and click Analyze Routine.
+            Enter your skincare products (separate with commas or new lines) and click Analyze Routine.
           </p>
         </div>
 
         <Card className="bg-white shadow-lg rounded-2xl mb-8">
           <CardContent className="p-8">
             <Textarea
-              placeholder="Enter your skincare products, one per line:&#10;&#10;CeraVe Hydrating Cleanser&#10;The Ordinary Niacinamide 10%&#10;Neutrogena Ultra Sheer Sunscreen"
+              placeholder="Enter your skincare products (separate with commas or new lines):&#10;&#10;Example:&#10;CeraVe Hydrating Cleanser, The Ordinary Niacinamide 10%, Neutrogena Ultra Sheer Sunscreen&#10;&#10;Or:&#10;CeraVe Hydrating Cleanser&#10;The Ordinary Niacinamide 10%&#10;Neutrogena Ultra Sheer Sunscreen"
               value={products}
               onChange={(e) => setProducts(e.target.value)}
               className="min-h-32 mb-6 border-gray-200 rounded-xl"
