@@ -186,7 +186,6 @@ export async function POST(request: NextRequest) {
       model: "gpt-4o-mini",
       temperature: 0.3,
       response_format: { type: "json_object" },
-      tools: [{ type: "web_search" }],
       messages: [
         {
           role: "system",
