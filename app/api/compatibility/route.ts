@@ -15,8 +15,14 @@ type Compat = {
     key_benefits: string[]; cautions: string[];
     ingredients_inci: { names: string[] } | "unknown";
     citations: string[];
+    skin_impact?: string;
   }>;
-  analysis?: { global_observations?: string[]; suggestions?: string[]; pairs?: any[] };
+  analysis?: { 
+    global_observations?: string[]; 
+    suggestions?: string[]; 
+    pairs?: any[];
+    makeup_skincare_synergy?: string[];
+  };
 };
 
 function normalize(out: any, originalProducts: string[]): Compat {
@@ -51,7 +57,8 @@ function normalize(out: any, originalProducts: string[]): Compat {
       key_benefits: Array.isArray(p.key_benefits) ? p.key_benefits : ["General skincare benefits"],
       cautions: Array.isArray(p.cautions) ? p.cautions : [],
       ingredients_inci: p.ingredients_inci || "unknown",
-      citations: Array.isArray(p.citations) ? p.citations : []
+      citations: Array.isArray(p.citations) ? p.citations : [],
+      skin_impact: p.skin_impact || "General product effects on skin"
     })) : originalProducts.map(p => ({
       query: p,
       matched_product: p,
@@ -59,12 +66,14 @@ function normalize(out: any, originalProducts: string[]): Compat {
       key_benefits: ["General skincare benefits"],
       cautions: [],
       ingredients_inci: "unknown",
-      citations: []
+      citations: [],
+      skin_impact: "General product effects on skin"
     })),
     analysis: {
       pairs: Array.isArray(out.analysis?.pairs) ? out.analysis.pairs : [],
       global_observations: Array.isArray(out.analysis?.global_observations) ? out.analysis.global_observations : ["Routine analysis completed."],
-      suggestions: Array.isArray(out.analysis?.suggestions) ? out.analysis.suggestions : []
+      suggestions: Array.isArray(out.analysis?.suggestions) ? out.analysis.suggestions : [],
+      makeup_skincare_synergy: Array.isArray(out.analysis?.makeup_skincare_synergy) ? out.analysis.makeup_skincare_synergy : []
     }
   };
 
@@ -136,7 +145,7 @@ export async function POST(request: NextRequest) {
         {
           role: "system",
           content:
-            "You are a cosmetic chemist + skincare educator. CRITICAL: You MUST output a complete, consistent JSON response every time. \
+            "You are a cosmetic chemist + skincare educator with expertise in both skincare and makeup formulations. CRITICAL: You MUST output a complete, consistent JSON response every time. \
             MANDATORY REQUIREMENTS: \
             1) ALWAYS include ALL fields in this EXACT schema: \
             { \
@@ -157,11 +166,12 @@ export async function POST(request: NextRequest) {
                 { \
                   \"query\": string, \
                   \"matched_product\": string, \
-                  \"role\": string, \
+                  \"role\": string (specify if skincare or makeup), \
                   \"key_benefits\": string[] (MUST have at least 1 benefit), \
                   \"cautions\": string[] (can be empty array), \
                   \"ingredients_inci\": { \"names\": string[] } | \"unknown\", \
-                  \"citations\": string[] (MUST have at least 1 citation) \
+                  \"citations\": string[] (MUST have at least 1 citation), \
+                  \"skin_impact\": string (how this product affects skin health) \
                 } \
               ], \
               \"analysis\": { \
@@ -170,7 +180,7 @@ export async function POST(request: NextRequest) {
                     \"between\": [string, string], \
                     \"flags\": [ \
                       { \
-                        \"type\": \"ok_together\" | \"irritation_stack\" | \"redundancy\" | \"caution\", \
+                        \"type\": \"ok_together\" | \"irritation_stack\" | \"redundancy\" | \"caution\" | \"makeup_skincare_interaction\" | \"pilling_risk\" | \"oxidization_risk\", \
                         \"severity\": \"low\" | \"medium\" | \"high\", \
                         \"why\": string, \
                         \"sources\": string[] \
@@ -180,7 +190,8 @@ export async function POST(request: NextRequest) {
                   } \
                 ], \
                 \"global_observations\": string[] (MUST have at least 2 observations), \
-                \"suggestions\": string[] (MUST have at least 1 suggestion) \
+                \"suggestions\": string[] (MUST have at least 1 suggestion), \
+                \"makeup_skincare_synergy\": string[] (how makeup and skincare work together) \
               } \
             } \
             CONSISTENCY RULES: \
@@ -189,16 +200,28 @@ export async function POST(request: NextRequest) {
             - ALWAYS include global_observations (minimum 2 items) \
             - ALWAYS include suggestions (minimum 1 item) \
             - If unsure about ingredients, use \"unknown\" but still provide analysis \
+            - For makeup products, analyze how they interact with skincare underneath \
+            - Consider pilling, oxidization, and wear-time interactions \
             frequencies examples: \
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
-              \"sunscreen\": \"every AM\" } \
+              \"sunscreen\": \"every AM\", \
+              \"foundation\": \"daily as needed\", \
+              \"retinol cream\": \"2–3 nights/week\" } \
             MULTI-FACTOR RATING (0-5 scale per category): \
             - Barrier Safety: 5=excellent barrier support, 0=barrier damaging \
             - Irritation Risk: 5=high risk, 0=very gentle \
             - Efficacy: 5=highly effective for goals, 0=minimal benefit \
             - Compatibility: 5=perfect layering, 0=conflicting ingredients \
-            - Long-term Safety: 5=sustainable for years, 0=unsafe long-term"
+            - Long-term Safety: 5=sustainable for years, 0=unsafe long-term \
+            MAKEUP-SPECIFIC ANALYSIS: \
+            - Analyze how makeup ingredients affect skin health over time \
+            - Consider comedogenic potential of makeup ingredients \
+            - Evaluate how makeup interacts with skincare actives \
+            - Look for potential pilling between skincare and makeup layers \
+            - Check for ingredients that may oxidize or break down together \
+            - Assess whether makeup provides additional skincare benefits (SPF, antioxidants, etc.) \
+            - Consider removal requirements and their impact on skin barrier"
         },
         {
           role: "user",

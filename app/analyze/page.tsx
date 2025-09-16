@@ -28,12 +28,13 @@ interface AnalysisResult {
     cautions: string[]
     ingredients_inci: { names: string[] } | "unknown"
     citations: string[]
+    skin_impact?: string
   }>
   analysis: {
     pairs: Array<{
       between: [string, string]
       flags: Array<{
-        type: "ok_together" | "irritation_stack" | "redundancy" | "caution"
+        type: "ok_together" | "irritation_stack" | "redundancy" | "caution" | "makeup_skincare_interaction" | "pilling_risk" | "oxidization_risk"
         severity: "low" | "medium" | "high"
         why: string
         sources: string[]
@@ -42,6 +43,7 @@ interface AnalysisResult {
     }>
     global_observations: string[]
     suggestions: string[]
+    makeup_skincare_synergy?: string[]
   }
 }
 
@@ -91,6 +93,27 @@ export default function Analyze() {
         return "bg-[#ffd7e0] text-pink-800"
       default:
         return "bg-gray-200 text-gray-800"
+    }
+  }
+
+  const getFlagTypeColor = (type: string) => {
+    switch (type) {
+      case "ok_together":
+        return "bg-green-100 text-green-800"
+      case "makeup_skincare_interaction":
+        return "bg-blue-100 text-blue-800"
+      case "pilling_risk":
+        return "bg-orange-100 text-orange-800"
+      case "oxidization_risk":
+        return "bg-red-100 text-red-800"
+      case "irritation_stack":
+        return "bg-red-100 text-red-800"
+      case "redundancy":
+        return "bg-yellow-100 text-yellow-800"
+      case "caution":
+        return "bg-yellow-100 text-yellow-800"
+      default:
+        return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -310,6 +333,13 @@ export default function Analyze() {
                       </ul>
                     </div>
                     
+                    {product.skin_impact && (
+                      <div className="mb-3">
+                        <h5 className="font-medium text-gray-700 mb-1">Skin Impact:</h5>
+                        <p className="text-sm text-gray-600">{product.skin_impact}</p>
+                      </div>
+                    )}
+                    
                     <div className="space-y-1">
                       {product.citations.map((citation, citIndex) => (
                         <a
@@ -347,9 +377,14 @@ export default function Analyze() {
                         <div key={flagIndex} className="mb-2">
                           <div className="flex items-center gap-2 mb-1">
                             <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getFlagTypeColor(flag.type)}`}
+                            >
+                              {flag.type.replace(/_/g, ' ').toUpperCase()}
+                            </span>
+                            <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(flag.severity)}`}
                             >
-                              {flag.type.toUpperCase()} - {flag.severity.toUpperCase()}
+                              {flag.severity.toUpperCase()}
                             </span>
                           </div>
                           <p className="text-gray-700 text-sm">{flag.why}</p>
@@ -367,6 +402,25 @@ export default function Analyze() {
                       )}
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Makeup-Skincare Synergy */}
+            {results.analysis && results.analysis.makeup_skincare_synergy && results.analysis.makeup_skincare_synergy.length > 0 && (
+              <Card className="bg-white shadow-lg rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-gray-800">Makeup & Skincare Synergy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {results.analysis.makeup_skincare_synergy.map((synergy, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-blue-400 mr-2">💄</span>
+                        <span className="text-gray-700">{synergy}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             )}
