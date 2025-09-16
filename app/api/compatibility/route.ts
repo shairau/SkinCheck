@@ -98,7 +98,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
     // Create a set of existing pairs for quick lookup (normalize to lowercase)
     const existingPairSet = new Set();
     (res.analysis?.pairs || []).forEach(pair => {
-      const normalizedPair = pair.between.map(p => p.toLowerCase().trim()).sort().join("|");
+      const normalizedPair = pair.between.map((p: string) => p.toLowerCase().trim()).sort().join("|");
       existingPairSet.add(normalizedPair);
     });
     
