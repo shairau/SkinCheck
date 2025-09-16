@@ -55,7 +55,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
   const lowerKeys = Object.keys(freq).reduce((acc,k)=>{ acc[k.toLowerCase()] = k; return acc; }, {} as Record<string,string>);
   const mentionsRetinoid = (s:string)=>/retin(al|ol)|retinoid/i.test(s);
   const needsRamp = Object.keys(lowerKeys).some(k=>mentionsRetinoid(k)) ||
-    res.products.some(p=>mentionsRetinoid(p.role)||mentionsRetinoid(p.matched_product));
+    (res.products || []).some(p=>mentionsRetinoid(p.role)||mentionsRetinoid(p.matched_product));
 
   if (needsRamp) {
     const key = Object.keys(lowerKeys).find(k=>mentionsRetinoid(k)) ?? "retinal";
@@ -83,7 +83,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
   }
 
   // Citation reminder if benefits/cautions exist but citations missing
-  const missingCites = res.products.some(p => (p.key_benefits.length > 0 || p.cautions.length > 0) && p.citations.length === 0);
+  const missingCites = (res.products || []).some(p => (p.key_benefits.length > 0 || p.cautions.length > 0) && p.citations.length === 0);
   if (missingCites) {
     res.analysis.suggestions.push("Some product claims lack citations; prefer brand pages or INCIDecoder when listing INCI or ingredient-based benefits.");
   }
