@@ -51,7 +51,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
   };
 
   // Frequencies guardrail for retinoids
-  const freq = res.routine_plan.frequencies;
+  const freq = res.routine_plan?.frequencies || {};
   const lowerKeys = Object.keys(freq).reduce((acc,k)=>{ acc[k.toLowerCase()] = k; return acc; }, {} as Record<string,string>);
   const mentionsRetinoid = (s:string)=>/retin(al|ol)|retinoid/i.test(s);
   const needsRamp = Object.keys(lowerKeys).some(k=>mentionsRetinoid(k)) ||
