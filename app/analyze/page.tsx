@@ -9,6 +9,10 @@ import ImageUpload from "@/components/image-upload"
 import { Stepper } from "@/components/Stepper"
 import { UploadDropzone } from "@/components/UploadDropzone"
 import { ProductChips } from "@/components/ProductChips"
+import { Section } from "@/components/ui/section"
+import { Scorecard } from "@/components/scorecard"
+import { ProductAccordion } from "@/components/product-accordion"
+import { Tag } from "@/components/ui/tag"
 
 interface AnalysisResult {
   routine_rating: {
@@ -134,42 +138,11 @@ export default function Analyze() {
     }
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "low":
-        return "bg-[#cfeee0] text-green-800"
-      case "medium":
-        return "bg-yellow-200 text-yellow-800"
-      case "high":
-        return "bg-[#ffd7e0] text-pink-800"
-      default:
-        return "bg-gray-200 text-gray-800"
-    }
-  }
 
-  const getFlagTypeColor = (type: string) => {
-    switch (type) {
-      case "ok_together":
-        return "bg-green-100 text-green-800"
-      case "makeup_skincare_interaction":
-        return "bg-blue-100 text-blue-800"
-      case "pilling_risk":
-        return "bg-orange-100 text-orange-800"
-      case "oxidization_risk":
-        return "bg-red-100 text-red-800"
-      case "irritation_stack":
-        return "bg-red-100 text-red-800"
-      case "redundancy":
-        return "bg-yellow-100 text-yellow-800"
-      case "caution":
-        return "bg-yellow-100 text-yellow-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
+  const bg = "bg-[#FFF7F1]"; // soft cream page bg
 
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className={`min-h-screen ${bg}`}>
       <Navbar />
 
       <main className="container mx-auto px-4 py-16 max-w-4xl">
@@ -201,7 +174,7 @@ export default function Analyze() {
               ocrConfidence === 'medium' ? 'text-yellow-800' :
               'text-orange-800'
             }`}>
-              📸 Image recognition confidence: <strong>{ocrConfidence}</strong>
+              Image Confidence: <strong>{ocrConfidence}</strong>
               {ocrConfidence === 'low' && ' - Please review the extracted product names and edit if needed.'}
             </p>
           </div>
@@ -228,300 +201,97 @@ export default function Analyze() {
 
         {results && (
           <div className="space-y-8">
-            {/* Debug: Show raw JSON if structure is unexpected */}
-            {(!results.routine_plan || !results.analysis || !results.products) && (
-              <Card className="bg-yellow-50 border-yellow-200">
-                <CardHeader>
-                  <CardTitle className="text-xl text-yellow-800">Debug: Raw API Response</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="text-sm text-gray-800 bg-white p-4 rounded border overflow-auto">
-                    {JSON.stringify(results, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-            {/* Multi-Factor Rating */}
-            <Card className="bg-white shadow-lg rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-2xl text-gray-800">Multi-Factor Routine Rating</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 mb-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700 font-medium">Barrier Safety</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(results.routine_rating.barrier_safety / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-800 font-semibold">{results.routine_rating.barrier_safety}/5</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700 font-medium">Irritation Risk</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-red-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(results.routine_rating.irritation_risk / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-800 font-semibold">{results.routine_rating.irritation_risk}/5</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700 font-medium">Efficacy</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(results.routine_rating.efficacy / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-800 font-semibold">{results.routine_rating.efficacy}/5</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700 font-medium">Compatibility</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(results.routine_rating.compatibility / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-800 font-semibold">{results.routine_rating.compatibility}/5</span>
-                    </div>
-                  </div>
-                  
-                  {results.routine_rating.long_term_safety && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700 font-medium">Long-term Safety</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-orange-500 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${(results.routine_rating.long_term_safety / 5) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-gray-800 font-semibold">{results.routine_rating.long_term_safety}/5</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <p className="text-gray-700">{results.score_rationale}</p>
-              </CardContent>
-            </Card>
+            {/* SCORECARD */}
+            <Scorecard
+              score={results.routine_rating ? (results.routine_rating.barrier_safety + results.routine_rating.efficacy + results.routine_rating.compatibility) * 6.67 - results.routine_rating.irritation_risk * 6.67 : 0}
+              rationale={results.score_rationale ?? ""}
+              factors={[
+                { label: "Barrier Safety", value: (results.routine_rating?.barrier_safety || 0) * 20 },
+                { label: "Irritation Risk", value: (results.routine_rating?.irritation_risk || 0) * 20 },
+                { label: "Efficacy", value: (results.routine_rating?.efficacy || 0) * 20 },
+                { label: "Compatibility", value: (results.routine_rating?.compatibility || 0) * 20 },
+              ]}
+            />
 
-            {/* Routine Plan */}
+            {/* DAILY ROUTINE */}
             {results.routine_plan && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Recommended Routine</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {results.routine_plan.am && results.routine_plan.am.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Morning (AM)</h4>
-                      <ul className="space-y-1">
-                        {results.routine_plan.am.map((product, index) => (
-                          <li key={index} className="text-gray-700">• {product}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {results.routine_plan.pm && results.routine_plan.pm.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Evening (PM)</h4>
-                      <ul className="space-y-1">
-                        {results.routine_plan.pm.map((product, index) => (
-                          <li key={index} className="text-gray-700">• {product}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {results.routine_plan.frequencies && Object.keys(results.routine_plan.frequencies).length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Usage Frequencies</h4>
-                      <div className="space-y-2">
-                        {Object.entries(results.routine_plan.frequencies).map(([key, value]) => (
-                          <div key={key} className="space-y-1">
-                            <span className="text-gray-700 font-medium">{key}:</span>
-                            <div className="text-gray-600 ml-2">{value}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Global Observations */}
-            {results.analysis && results.analysis.global_observations && results.analysis.global_observations.length > 0 && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Global Observations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {results.analysis.global_observations.map((obs, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-gray-400 mr-2">•</span>
-                        <span className="text-gray-700">{obs}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Products */}
-            {results.products && results.products.length > 0 && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Product Analysis</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {results.products.map((product, index) => (
-                  <div key={index} className="border-l-4 border-[#cfeee0] pl-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">{product.matched_product}</h4>
-                    <p className="text-sm text-gray-600 mb-3">Role: {product.role}</p>
-                    
-                    <div className="mb-3">
-                      <h5 className="font-medium text-gray-700 mb-1">Key Benefits:</h5>
-                      <ul className="space-y-1">
-                        {product.key_benefits.map((benefit, bIndex) => (
-                          <li key={bIndex} className="text-sm text-gray-600">• {benefit}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <h5 className="font-medium text-gray-700 mb-1">Cautions:</h5>
-                      <ul className="space-y-1">
-                        {product.cautions.map((caution, cIndex) => (
-                          <li key={cIndex} className="text-sm text-gray-600">• {caution}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    {product.skin_impact && (
-                      <div className="mb-3">
-                        <h5 className="font-medium text-gray-700 mb-1">Skin Impact:</h5>
-                        <p className="text-sm text-gray-600">{product.skin_impact}</p>
-                      </div>
-                    )}
-                    
-                    <div className="space-y-1">
-                      {product.citations.map((citation, citIndex) => (
-                        <a
-                          key={citIndex}
-                          href={citation}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-sm underline block"
-                        >
-                          {citation}
-                        </a>
+              <Section title="Daily Routine" subtitle="Use this AM/PM plan and frequencies.">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="rounded-xl border bg-white p-5">
+                    <Tag tone="success">AM</Tag>
+                    <ul className="mt-3 space-y-2 text-neutral-800">{(results.routine_plan.am||[]).map((s:string,i:number)=><li key={i}>• {s}</li>)}</ul>
+                  </div>
+                  <div className="rounded-xl border bg-white p-5">
+                    <Tag tone="info">PM</Tag>
+                    <ul className="mt-3 space-y-2 text-neutral-800">{(results.routine_plan.pm||[]).map((s:string,i:number)=><li key={i}>• {s}</li>)}</ul>
+                  </div>
+                </div>
+                {results.routine_plan.frequencies && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-neutral-800 mb-2">Frequencies</h4>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {Object.entries(results.routine_plan.frequencies).map(([k,v])=>(
+                        <div key={k} className="rounded-lg border bg-white px-3 py-2 text-sm flex items-center justify-between">
+                          <span className="capitalize text-neutral-700">{k}</span>
+                          <span className="text-neutral-900 font-medium">{String(v)}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
-                  ))}
-                </CardContent>
-              </Card>
+                )}
+              </Section>
             )}
 
-            {/* Compatibility Issues */}
-            {results.analysis && results.analysis.pairs && results.analysis.pairs.length > 0 && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Compatibility Analysis</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {results.analysis.pairs.map((pair, index) => (
-                    <div key={index} className="p-4 border border-gray-200 rounded-xl">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="font-medium text-gray-800">
-                          {pair.between[0]} + {pair.between[1]}
-                        </span>
+            {/* KEY INSIGHTS */}
+            {results?.analysis?.global_observations?.length ? (
+              <Section title="Key Insights">
+                <ul className="list-disc pl-5 space-y-2 text-neutral-800">
+                  {results.analysis.global_observations.map((x:string,i:number)=><li key={i}>{x}</li>)}
+                </ul>
+              </Section>
+            ) : null}
+
+            {/* PRODUCT BREAKDOWN */}
+            {results?.products?.length ? (
+              <Section title="Product Breakdown" subtitle="Tap to expand details, notes, and citations.">
+                <ProductAccordion items={results.products} />
+              </Section>
+            ) : null}
+
+            {/* PRODUCT INTERACTIONS */}
+            {results?.analysis?.pairs?.length ? (
+              <Section title="Product Interactions" subtitle="Where conflicts or stacks exist, we show severity.">
+                <div className="space-y-4">
+                  {results.analysis.pairs.map((p:any, i:number)=>(
+                    <div key={i} className="rounded-xl border bg-white p-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="font-medium text-[#141822]">{p.between?.join(" + ")}</div>
+                        {p.flags?.map((f:any, j:number)=>{
+                          const tone = f.severity==="high"?"danger":f.severity==="medium"?"warn":"neutral";
+                          return <Tag key={j} tone={tone}>{(f.type||"flag").replaceAll("_"," ")} • {f.severity}</Tag>;
+                        })}
                       </div>
-                      {pair.flags.map((flag, flagIndex) => (
-                        <div key={flagIndex} className="mb-2">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getFlagTypeColor(flag.type)}`}
-                            >
-                              {flag.type.replace(/_/g, ' ').toUpperCase()}
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(flag.severity)}`}
-                            >
-                              {flag.severity.toUpperCase()}
-                            </span>
-                          </div>
-                          <p className="text-gray-700 text-sm">{flag.why}</p>
-                        </div>
-                      ))}
-                      {pair.suggestions.length > 0 && (
+                      {p.flags?.length ? <p className="mt-3 text-sm text-neutral-700">{p.flags[0]?.why}</p> : null}
+                      {p.suggestions?.length ? (
                         <div className="mt-3">
-                          <h6 className="font-medium text-gray-700 mb-1">Suggestions:</h6>
-                          <ul className="space-y-1">
-                            {pair.suggestions.map((suggestion, sIndex) => (
-                              <li key={sIndex} className="text-sm text-gray-600">• {suggestion}</li>
-                            ))}
-                          </ul>
+                          <h4 className="text-sm font-semibold text-neutral-800 mb-1">Suggestions</h4>
+                          <ul className="list-disc pl-5 space-y-1 text-sm text-neutral-700">{p.suggestions.map((s:string,k:number)=><li key={k}>{s}</li>)}</ul>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   ))}
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </Section>
+            ) : null}
 
-            {/* Makeup-Skincare Synergy */}
-            {results.analysis && results.analysis.makeup_skincare_synergy && results.analysis.makeup_skincare_synergy.length > 0 && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Makeup & Skincare Synergy</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {results.analysis.makeup_skincare_synergy.map((synergy, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-blue-400 mr-2">•</span>
-                        <span className="text-gray-700">{synergy}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Suggestions */}
-            {results.analysis && results.analysis.suggestions && results.analysis.suggestions.length > 0 && (
-              <Card className="bg-white shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Recommendations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {results.analysis.suggestions.map((suggestion, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-gray-400 mr-2">•</span>
-                        <span className="text-gray-700">{suggestion}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+            {/* NEXT STEPS */}
+            {results?.analysis?.suggestions?.length ? (
+              <Section title="Next Steps" subtitle="Actionable tweaks to improve results.">
+                <ul className="list-disc pl-5 space-y-2 text-neutral-800">
+                  {results.analysis.suggestions.map((s:string,i:number)=><li key={i}>{s}</li>)}
+                </ul>
+              </Section>
+            ) : null}
           </div>
         )}
 

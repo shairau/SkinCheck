@@ -7,7 +7,7 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "SkinCheck - Skincare Routine Analyzer",
+  title: "Bare - Skincare Routine Analyzer",
   description:
     "Discover how well your skincare products work together. Get personalized insights for a healthier, happier complexion.",
   generator: "v0.app",

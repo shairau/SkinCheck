@@ -1,4 +1,4 @@
-# Skin Check - Skincare Routine Analyzer
+# Bare - Skincare Routine Analyzer
 
 A Next.js 14 application that analyzes skincare routines for compatibility and effectiveness using AI.
 
@@ -67,7 +67,7 @@ This project is ready for deployment on Vercel:
 ## Project Structure
 
 ```
-skin-check/
+bare/
 ├── app/
 │   ├── api/
 │   │   ├── ping/

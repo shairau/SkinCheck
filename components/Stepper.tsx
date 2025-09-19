@@ -4,9 +4,9 @@ import clsx from "clsx";
 type Step = { label: string; icon: React.ReactNode };
 export function Stepper({ step }: { step: 1 | 2 | 3 }) {
   const steps: Step[] = [
-    { label: "Upload", icon: <span>📷</span> },
-    { label: "Review", icon: <span>📝</span> },
-    { label: "Analyze", icon: <span>🔎</span> },
+    { label: "Upload" },
+    { label: "Review"},
+    { label: "Analyze"},
   ];
   return (
     <div className="mx-auto mb-6 flex w-full max-w-3xl items-center justify-between">
