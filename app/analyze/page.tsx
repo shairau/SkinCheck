@@ -203,11 +203,16 @@ export default function Analyze() {
           <div className="space-y-8">
             {/* SCORECARD */}
             <Scorecard
-              score={results.routine_rating ? (results.routine_rating.barrier_safety + results.routine_rating.efficacy + results.routine_rating.compatibility) * 6.67 - results.routine_rating.irritation_risk * 6.67 : 0}
+              score={results.routine_rating ? Math.round(
+                ((results.routine_rating.barrier_safety || 0) * 20) +
+                ((5 - (results.routine_rating.irritation_risk || 0)) * 20) + // Invert irritation risk (lower is better)
+                ((results.routine_rating.efficacy || 0) * 20) +
+                ((results.routine_rating.compatibility || 0) * 20)
+              ) / 4 : 0}
               rationale={results.score_rationale ?? ""}
               factors={[
                 { label: "Barrier Safety", value: (results.routine_rating?.barrier_safety || 0) * 20 },
-                { label: "Irritation Risk", value: (results.routine_rating?.irritation_risk || 0) * 20 },
+                { label: "Irritation Risk", value: (5 - (results.routine_rating?.irritation_risk || 0)) * 20 }, // Inverted: higher value = lower risk
                 { label: "Efficacy", value: (results.routine_rating?.efficacy || 0) * 20 },
                 { label: "Compatibility", value: (results.routine_rating?.compatibility || 0) * 20 },
               ]}
@@ -231,9 +236,9 @@ export default function Analyze() {
                     <h4 className="text-sm font-semibold text-neutral-800 mb-2">Frequencies</h4>
                     <div className="grid sm:grid-cols-2 gap-3">
                       {Object.entries(results.routine_plan.frequencies).map(([k,v])=>(
-                        <div key={k} className="rounded-lg border bg-white px-3 py-2 text-sm flex items-center justify-between">
-                          <span className="capitalize text-neutral-700">{k}</span>
-                          <span className="text-neutral-900 font-medium">{String(v)}</span>
+                        <div key={k} className="rounded-lg border bg-white px-3 py-2 text-sm flex flex-col gap-1">
+                          <span className="capitalize text-neutral-700 font-medium">{k}</span>
+                          <span className="text-neutral-900 text-sm leading-relaxed">{String(v)}</span>
                         </div>
                       ))}
                     </div>

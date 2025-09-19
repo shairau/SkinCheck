@@ -44,17 +44,17 @@ function normalize(out: any, originalProducts: string[]): Compat {
   // Ensure all required fields exist with defaults
   const res: Compat = {
     routine_rating: out.routine_rating ? {
-      barrier_safety: Math.max(0, Math.min(5, Math.round(out.routine_rating.barrier_safety || 3))),
-      irritation_risk: Math.max(0, Math.min(5, Math.round(out.routine_rating.irritation_risk || 2))),
-      efficacy: Math.max(0, Math.min(5, Math.round(out.routine_rating.efficacy || 3))),
-      compatibility: Math.max(0, Math.min(5, Math.round(out.routine_rating.compatibility || 3))),
+      barrier_safety: Math.max(0, Math.min(5, Math.round(out.routine_rating.barrier_safety || 4))),
+      irritation_risk: Math.max(0, Math.min(5, Math.round(out.routine_rating.irritation_risk || 1))),
+      efficacy: Math.max(0, Math.min(5, Math.round(out.routine_rating.efficacy || 4))),
+      compatibility: Math.max(0, Math.min(5, Math.round(out.routine_rating.compatibility || 4))),
       long_term_safety: out.routine_rating.long_term_safety ? Math.max(0, Math.min(5, Math.round(out.routine_rating.long_term_safety))) : undefined
     } : {
-      barrier_safety: 3,
-      irritation_risk: 2,
-      efficacy: 3,
-      compatibility: 3,
-      long_term_safety: 3
+      barrier_safety: 4,
+      irritation_risk: 1,
+      efficacy: 4,
+      compatibility: 4,
+      long_term_safety: 4
     },
     score_rationale: out.score_rationale || "Analysis completed successfully.",
     score_explanations: out.score_explanations ? {
@@ -249,17 +249,34 @@ export async function POST(request: NextRequest) {
               \"foundation\": \"daily as needed\", \
               \"retinol cream\": \"2–3 nights/week\" } \
             MULTI-FACTOR RATING (0-5 scale per category): \
-            - Barrier Safety: 5=excellent barrier support, 0=barrier damaging \
-            - Irritation Risk: 5=high risk, 0=very gentle \
-            - Efficacy: 5=highly effective for goals, 0=minimal benefit \
-            - Compatibility: 5=perfect layering, 0=conflicting ingredients \
-            - Long-term Safety: 5=sustainable for years, 0=unsafe long-term \
+            - Barrier Safety: 5=excellent barrier support, 4=good support, 3=adequate, 2=weak, 1=poor, 0=damaging \
+            - Irritation Risk: 5=very high risk, 4=high risk, 3=moderate risk, 2=low risk, 1=minimal risk, 0=very gentle \
+            - Efficacy: 5=highly effective, 4=very effective, 3=effective, 2=somewhat effective, 1=minimal benefit, 0=ineffective \
+            - Compatibility: 5=perfect layering, 4=very compatible, 3=mostly compatible, 2=some conflicts, 1=several conflicts, 0=highly conflicting \
+            - Long-term Safety: 5=excellent long-term, 4=very safe, 3=safe, 2=moderate concerns, 1=concerning, 0=unsafe \
+            SCORING GUIDANCE: \
+            - A well-balanced routine should score 4-5 in Barrier Safety, Efficacy, and Compatibility \
+            - Irritation Risk should be 1-2 for most users (lower is better) \
+            - Only penalize scores significantly for actual problems (missing sunscreen, conflicting actives, etc.) \
+            - Reward good practices: sunscreen, gentle cleansing, proper layering, suitable actives \
+            ANALYSIS DEPTH: \
+            - Provide specific, actionable insights based on ingredient science \
+            - Explain WHY certain combinations work or don't work \
+            - Include pH considerations, penetration enhancement, and stability factors \
+            - Reference specific ingredients and their interactions \
+            - Give practical layering advice and timing recommendations \
             ORGANIZATION: \
             - Keep output concise and skimmable \
             - Focus on high-signal information \
             - Cap verbosity: max 5 global_observations, max 6 suggestions \
             - Per product: max 3 key_benefits, max 2 cautions \
-            - Makeup guidance only in makeup_skincare_synergy as technique notes"
+            - Makeup guidance only in makeup_skincare_synergy as technique notes \
+            QUALITY STANDARDS: \
+            - Avoid generic statements like \"this is a good routine\" \
+            - Provide specific, science-based explanations \
+            - Include actionable recommendations for improvement \
+            - Be honest about limitations and potential issues \
+            - Focus on what will actually make a difference for skin health"
         },
         {
           role: "user",
