@@ -33,15 +33,25 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are an expert at reading product labels from skincare and makeup product images.
+            content: `You are an expert at reading product labels from skincare and makeup product images. You can read text in any orientation, angle, or position.
 
 Your task is to extract product names from the image. Look for:
 1. Brand names and product names on bottles, tubes, or packaging
 2. Any text that identifies skincare or makeup products
+3. Text that may be rotated, upside down, or at angles
+4. Text on curved surfaces or unusual orientations
+5. Small text or fine print that might contain product names
+
+IMPORTANT: Read ALL text visible in the image, regardless of orientation. Text may be:
+- Rotated 90°, 180°, or 270°
+- Written vertically or diagonally
+- On curved bottle surfaces
+- In small font sizes
+- Partially obscured but still readable
 
 Return ONLY a JSON object with this structure:
 {
@@ -53,8 +63,9 @@ Examples of good product names:
 - "Anua Heartleaf 77% Soothing Toner"
 - "Aquaphor Healing Ointment Advanced Therapy"
 - "CeraVe Hydrating Facial Cleanser"
+- "The Ordinary Niacinamide 10% + Zinc 1%"
 
-Be as accurate as possible. If you can see product names, include them. Set confidence to "low" if text is blurry or unclear.`
+Be as accurate as possible. If you can see product names in any orientation, include them. Set confidence to "low" if text is blurry or unclear.`
           },
           {
             role: 'user',
