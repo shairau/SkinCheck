@@ -9,6 +9,13 @@ type Compat = {
     long_term_safety?: number;
   };
   score_rationale?: string;
+  score_explanations?: {
+    barrier_safety: string;
+    irritation_risk: string;
+    efficacy: string;
+    compatibility: string;
+    long_term_safety: string;
+  };
   routine_plan?: { am?: string[]; pm?: string[]; frequencies?: Record<string,string> };
   products?: Array<{
     query: string; matched_product: string; role: string;
@@ -18,6 +25,11 @@ type Compat = {
     skin_impact?: string;
   }>;
   analysis?: { 
+    pairs_summary?: {
+      total_products: number;
+      risky_pairs: number;
+      headlines: string[];
+    };
     global_observations?: string[]; 
     suggestions?: string[]; 
     pairs?: any[];
@@ -45,6 +57,19 @@ function normalize(out: any, originalProducts: string[]): Compat {
       long_term_safety: 3
     },
     score_rationale: out.score_rationale || "Analysis completed successfully.",
+    score_explanations: out.score_explanations ? {
+      barrier_safety: out.score_explanations.barrier_safety || "Barrier support assessment",
+      irritation_risk: out.score_explanations.irritation_risk || "Irritation potential assessment",
+      efficacy: out.score_explanations.efficacy || "Effectiveness for skin goals",
+      compatibility: out.score_explanations.compatibility || "Product layering compatibility",
+      long_term_safety: out.score_explanations.long_term_safety || "Long-term safety profile"
+    } : {
+      barrier_safety: "Barrier support assessment",
+      irritation_risk: "Irritation potential assessment",
+      efficacy: "Effectiveness for skin goals",
+      compatibility: "Product layering compatibility",
+      long_term_safety: "Long-term safety profile"
+    },
     routine_plan: {
       am: Array.isArray(out.routine_plan?.am) ? out.routine_plan.am : [],
       pm: Array.isArray(out.routine_plan?.pm) ? out.routine_plan.pm : [],
@@ -54,8 +79,8 @@ function normalize(out: any, originalProducts: string[]): Compat {
       query: p.query || "",
       matched_product: p.matched_product || p.name || "",
       role: p.role || "Skincare product",
-      key_benefits: Array.isArray(p.key_benefits) ? p.key_benefits : ["General skincare benefits"],
-      cautions: Array.isArray(p.cautions) ? p.cautions : [],
+      key_benefits: Array.isArray(p.key_benefits) ? p.key_benefits.slice(0, 3) : ["General skincare benefits"],
+      cautions: Array.isArray(p.cautions) ? p.cautions.slice(0, 2) : [],
       ingredients_inci: p.ingredients_inci || "unknown",
       citations: Array.isArray(p.citations) ? p.citations : [],
       skin_impact: p.skin_impact || "General product effects on skin"
@@ -70,9 +95,18 @@ function normalize(out: any, originalProducts: string[]): Compat {
       skin_impact: "General product effects on skin"
     })),
     analysis: {
+      pairs_summary: out.analysis?.pairs_summary ? {
+        total_products: out.analysis.pairs_summary.total_products || originalProducts.length,
+        risky_pairs: out.analysis.pairs_summary.risky_pairs || 0,
+        headlines: Array.isArray(out.analysis.pairs_summary.headlines) ? out.analysis.pairs_summary.headlines : []
+      } : {
+        total_products: originalProducts.length,
+        risky_pairs: 0,
+        headlines: []
+      },
       pairs: Array.isArray(out.analysis?.pairs) ? out.analysis.pairs : [],
-      global_observations: Array.isArray(out.analysis?.global_observations) ? out.analysis.global_observations : ["Routine analysis completed."],
-      suggestions: Array.isArray(out.analysis?.suggestions) ? out.analysis.suggestions : [],
+      global_observations: Array.isArray(out.analysis?.global_observations) ? out.analysis.global_observations.slice(0, 5) : ["Routine analysis completed."],
+      suggestions: Array.isArray(out.analysis?.suggestions) ? out.analysis.suggestions.slice(0, 6) : [],
       makeup_skincare_synergy: Array.isArray(out.analysis?.makeup_skincare_synergy) ? out.analysis.makeup_skincare_synergy : []
     }
   };
@@ -90,69 +124,7 @@ function normalize(out: any, originalProducts: string[]): Compat {
     freq[originalKey] = "start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated";
   }
 
-  // Ensure ALL compatibility pairs exist - generate missing ones
-  const expectedPairs = (res.products?.length || 0) * ((res.products?.length || 0) - 1) / 2;
-  const existingPairs = res.analysis?.pairs?.length || 0;
-  
-  if (expectedPairs > 0) {
-    // Create a set of existing pairs for quick lookup (normalize to lowercase)
-    const existingPairSet = new Set();
-    (res.analysis?.pairs || []).forEach(pair => {
-      const normalizedPair = pair.between.map((p: string) => p.toLowerCase().trim()).sort().join("|");
-      existingPairSet.add(normalizedPair);
-    });
-    
-    // Generate missing pairs
-    for (let i = 0; i < (res.products?.length || 0); i++) {
-      for (let j = i + 1; j < (res.products?.length || 0); j++) {
-        const product1 = res.products?.[i]?.matched_product || res.products?.[i]?.query || "";
-        const product2 = res.products?.[j]?.matched_product || res.products?.[j]?.query || "";
-        const normalizedPair = [product1.toLowerCase().trim(), product2.toLowerCase().trim()].sort().join("|");
-        
-        if (!existingPairSet.has(normalizedPair)) {
-          // Determine if this is a makeup-skincare interaction
-          const isMakeupSkincare = (
-            (product1.toLowerCase().includes('concealer') || 
-             product1.toLowerCase().includes('blush') || 
-             product1.toLowerCase().includes('mascara') ||
-             product1.toLowerCase().includes('foundation') ||
-             product1.toLowerCase().includes('lip')) &&
-            (product2.toLowerCase().includes('sunscreen') || 
-             product2.toLowerCase().includes('toner') || 
-             product2.toLowerCase().includes('cleanser') ||
-             product2.toLowerCase().includes('cream') ||
-             product2.toLowerCase().includes('serum'))
-          ) || (
-            (product2.toLowerCase().includes('concealer') || 
-             product2.toLowerCase().includes('blush') || 
-             product2.toLowerCase().includes('mascara') ||
-             product2.toLowerCase().includes('foundation') ||
-             product2.toLowerCase().includes('lip')) &&
-            (product1.toLowerCase().includes('sunscreen') || 
-             product1.toLowerCase().includes('toner') || 
-             product1.toLowerCase().includes('cleanser') ||
-             product1.toLowerCase().includes('cream') ||
-             product1.toLowerCase().includes('serum'))
-          );
-          
-          res.analysis?.pairs?.push({
-            between: [product1, product2],
-            flags: [{
-              type: isMakeupSkincare ? "makeup_skincare_interaction" : "ok_together",
-              severity: "low",
-              why: isMakeupSkincare 
-                ? "Makeup and skincare products can work well together when applied in the correct order."
-                : "Products appear compatible based on general formulation principles.",
-              sources: ["General skincare compatibility guidelines"]
-            }],
-            suggestions: isMakeupSkincare 
-              ? ["Apply skincare first, allow to absorb, then apply makeup."]
-              : ["Monitor for any irritation when using together."]
-          });
-        }
-      }
-    }
-  }
+  // Keep only what the model returns for analysis.pairs; do not auto-augment low/OK pairs.
 
   // Citation reminder if benefits/cautions exist but citations missing
   const missingCites = (res.products || []).some(p => (p.key_benefits.length > 0 || p.cautions.length > 0) && p.citations.length === 0);
@@ -205,6 +177,13 @@ export async function POST(request: NextRequest) {
                 \"long_term_safety\": number (0-5 scale, optional) \
               }, \
               \"score_rationale\": string (2-4 sentences), \
+              \"score_explanations\": { \
+                \"barrier_safety\": string (one-liner), \
+                \"irritation_risk\": string (one-liner), \
+                \"efficacy\": string (one-liner), \
+                \"compatibility\": string (one-liner), \
+                \"long_term_safety\": string (one-liner) \
+              }, \
               \"routine_plan\": { \
                 \"am\": string[] (MUST have at least 1 item), \
                 \"pm\": string[] (MUST have at least 1 item), \
@@ -213,23 +192,28 @@ export async function POST(request: NextRequest) {
               \"products\": [ \
                 { \
                   \"query\": string, \
-                  \"matched_product\": string, \
+                  \"matched_product\": string (corrected official name), \
                   \"role\": string (specify if skincare or makeup), \
-                  \"key_benefits\": string[] (MUST have at least 1 benefit), \
-                  \"cautions\": string[] (can be empty array), \
+                  \"key_benefits\": string[] (max 3, specific and non-repetitive), \
+                  \"cautions\": string[] (max 2, specific), \
                   \"ingredients_inci\": { \"names\": string[] } | \"unknown\", \
-                  \"citations\": string[] (MUST have at least 1 citation - ONLY direct product/brand website links), \
-                  \"skin_impact\": string (how this product affects skin health) \
+                  \"citations\": string[] (MUST have at least 1 citation - brand pages preferred), \
+                  \"skin_impact\": string (compact one-liner) \
                 } \
               ], \
               \"analysis\": { \
+                \"pairs_summary\": { \
+                  \"total_products\": number, \
+                  \"risky_pairs\": number, \
+                  \"headlines\": string[] (2-5 short bullets) \
+                }, \
                 \"pairs\": [ \
                   { \
                     \"between\": [string, string], \
                     \"flags\": [ \
                       { \
-                        \"type\": \"ok_together\" | \"irritation_stack\" | \"redundancy\" | \"caution\" | \"makeup_skincare_interaction\" | \"pilling_risk\" | \"oxidization_risk\", \
-                        \"severity\": \"low\" | \"medium\" | \"high\", \
+                        \"type\": \"irritation_stack\" | \"caution\" | \"redundancy\" | \"pilling_risk\" | \"oxidization_risk\" | \"makeup_skincare_interaction\", \
+                        \"severity\": \"medium\" | \"high\", \
                         \"why\": string, \
                         \"sources\": string[] \
                       } \
@@ -237,23 +221,27 @@ export async function POST(request: NextRequest) {
                     \"suggestions\": string[] \
                   } \
                 ], \
-                \"global_observations\": string[] (MUST have at least 2 observations), \
-                \"suggestions\": string[] (MUST have at least 1 suggestion), \
-                \"makeup_skincare_synergy\": string[] (how makeup and skincare work together) \
+                \"global_observations\": string[] (max 5 bullets), \
+                \"suggestions\": string[] (max 6 prioritized items), \
+                \"makeup_skincare_synergy\": string[] (2-4 technique bullets) \
               } \
             } \
-            CONSISTENCY RULES: \
-            - CRITICAL: You MUST analyze compatibility between EVERY SINGLE product pair. If there are N products, you must include exactly N*(N-1)/2 pairs in the analysis.pairs array \
-            - ALWAYS use the EXACT \"matched_product\" names from the products array when creating pairs - do NOT use the original query names \
-            - ALWAYS include routine_plan.am and pm arrays (never empty) \
-            - ALWAYS include global_observations (minimum 2 items) \
-            - ALWAYS include suggestions (minimum 1 item) \
-            - If unsure about ingredients, use \"unknown\" but still provide analysis \
-            - For makeup products, analyze how they interact with skincare underneath \
-            - Consider pilling, oxidization, and wear-time interactions \
-            - EXAMPLE: For 3 products [A, B, C], you must include pairs: A+B, A+C, B+C \
-            - EXAMPLE: For 4 products [A, B, C, D], you must include pairs: A+B, A+C, A+D, B+C, B+D, C+D \
-            - IMPORTANT: Use the matched_product names consistently in all pairs to avoid duplicates \
+            PRODUCT NAME QUALITY (MANDATORY): \
+            - Research exact official product names (brand + line + product + strength/format) \
+            - Use brand's official product page for canonical names \
+            - Fix incomplete/typo'd names (e.g., \"Drunk Elephant C Serum\" → \"Drunk Elephant C-Firma Fresh Day Serum\") \
+            - Include full, disambiguated names (e.g., \"CeraVe Hydrating Facial Cleanser\", not \"cerave cleanser\") \
+            - Use corrected names consistently in matched_product, analysis.pairs, and all sections \
+            PAIRS POLICY: \
+            - Include ONLY medium/high-risk pairs in analysis.pairs \
+            - Do NOT list \"OK/LOW\" pairs - summarize low-risk compatibility in global_observations \
+            - Use only these risk types: irritation_stack, caution, redundancy, pilling_risk, oxidization_risk, makeup_skincare_interaction \
+            - Severities: medium, high only \
+            ROUTINE CONSISTENCY: \
+            - If both AHA and BHA present, present Path A (AHA) vs Path B (BHA) to avoid stacking \
+            - If product/active appears in frequencies, it must exist in AM/PM \
+            - Remove false redundancy flags (two different cleansers AM vs PM is not redundancy) \
+            - Only flag redundancy if two similar products used in same session without purpose \
             frequencies examples: \
             { \"retinal\": \"start 2–3 nights/week for 2–3 weeks, then 3–4 nights/week if tolerated\", \
               \"salicylic acid\": \"1–3x/week\", \
@@ -266,14 +254,12 @@ export async function POST(request: NextRequest) {
             - Efficacy: 5=highly effective for goals, 0=minimal benefit \
             - Compatibility: 5=perfect layering, 0=conflicting ingredients \
             - Long-term Safety: 5=sustainable for years, 0=unsafe long-term \
-            MAKEUP-SPECIFIC ANALYSIS: \
-            - Analyze how makeup ingredients affect skin health over time \
-            - Consider comedogenic potential of makeup ingredients \
-            - Evaluate how makeup interacts with skincare actives \
-            - Look for potential pilling between skincare and makeup layers \
-            - Check for ingredients that may oxidize or break down together \
-            - Assess whether makeup provides additional skincare benefits (SPF, antioxidants, etc.) \
-            - Consider removal requirements and their impact on skin barrier"
+            ORGANIZATION: \
+            - Keep output concise and skimmable \
+            - Focus on high-signal information \
+            - Cap verbosity: max 5 global_observations, max 6 suggestions \
+            - Per product: max 3 key_benefits, max 2 cautions \
+            - Makeup guidance only in makeup_skincare_synergy as technique notes"
         },
         {
           role: "user",

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import Navbar from "@/components/navbar"
+import ImageUpload from "@/components/image-upload"
 
 interface AnalysisResult {
   routine_rating: {
@@ -15,6 +16,13 @@ interface AnalysisResult {
     long_term_safety?: number
   }
   score_rationale: string
+  score_explanations?: {
+    barrier_safety: string
+    irritation_risk: string
+    efficacy: string
+    compatibility: string
+    long_term_safety: string
+  }
   routine_plan: {
     am: string[]
     pm: string[]
@@ -31,11 +39,16 @@ interface AnalysisResult {
     skin_impact?: string
   }>
   analysis: {
+    pairs_summary?: {
+      total_products: number
+      risky_pairs: number
+      headlines: string[]
+    }
     pairs: Array<{
       between: [string, string]
       flags: Array<{
-        type: "ok_together" | "irritation_stack" | "redundancy" | "caution" | "makeup_skincare_interaction" | "pilling_risk" | "oxidization_risk"
-        severity: "low" | "medium" | "high"
+        type: "irritation_stack" | "redundancy" | "caution" | "makeup_skincare_interaction" | "pilling_risk" | "oxidization_risk"
+        severity: "medium" | "high"
         why: string
         sources: string[]
       }>
@@ -51,11 +64,30 @@ export default function Analyze() {
   const [products, setProducts] = useState("")
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleImageProcessed = (extractedProducts: string[]) => {
+    if (extractedProducts.length > 0) {
+      // Add extracted products to existing products or replace if empty
+      const currentProducts = products.trim() 
+        ? products.split(/[,\n]/).map(p => p.trim()).filter(p => p.length > 0)
+        : []
+      
+      const combinedProducts = [...currentProducts, ...extractedProducts]
+      setProducts(combinedProducts.join(', '))
+      setError("")
+    }
+  }
+
+  const handleImageError = (errorMessage: string) => {
+    setError(errorMessage)
+  }
 
   const handleAnalyze = async () => {
     if (!products.trim()) return
 
     setLoading(true)
+    setError("")
     try {
       // Split by comma or newline, then clean up
       const productList = products
@@ -75,9 +107,11 @@ export default function Analyze() {
         setResults(data)
       } else {
         console.error("API Error:", response.status, await response.text())
+        setError("Failed to analyze routine. Please try again.")
       }
     } catch (error) {
       console.error("Analysis failed:", error)
+      setError("Analysis failed. Please check your connection and try again.")
     } finally {
       setLoading(false)
     }
@@ -125,14 +159,39 @@ export default function Analyze() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Analyze Your Routine</h1>
           <p className="text-lg text-gray-600 text-pretty">
-            Enter your skincare and makeup products.
+            Enter your skincare and makeup products or upload an image to extract product names.
           </p>
         </div>
 
+        {/* Image Upload Section */}
+        <Card className="bg-white shadow-lg rounded-2xl mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-800">Upload Product Image</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ImageUpload 
+              onImageProcessed={handleImageProcessed}
+              onError={handleImageError}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Error Display */}
+        {error && (
+          <Card className="bg-red-50 border-red-200 mb-6">
+            <CardContent className="p-4">
+              <p className="text-red-800 text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-white shadow-lg rounded-2xl mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-800">Product List</CardTitle>
+          </CardHeader>
           <CardContent className="p-8">
             <Textarea
-              placeholder="List..."
+              placeholder="List your products here, or use the image upload above to extract product names..."
               value={products}
               onChange={(e) => setProducts(e.target.value)}
               className="min-h-32 mb-6 border-gray-200 rounded-xl"
