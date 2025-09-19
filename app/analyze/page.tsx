@@ -73,6 +73,7 @@ export default function Analyze() {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
+  const [ocrLoading, setOcrLoading] = useState(false)
   const [error, setError] = useState("")
   const [ocrConfidence, setOcrConfidence] = useState("")
 
@@ -87,6 +88,9 @@ export default function Analyze() {
   }
 
   const handleFile = async (file: File) => {
+    setOcrLoading(true)
+    setError("")
+    
     // Call your existing OCR endpoint
     const body = new FormData()
     body.append("image", file)
@@ -102,6 +106,8 @@ export default function Analyze() {
     } catch (error) {
       console.error('Error processing image:', error)
       setError('Failed to extract text from image. Please try again.')
+    } finally {
+      setOcrLoading(false)
     }
   }
 
@@ -182,7 +188,7 @@ export default function Analyze() {
 
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-100 mb-6">
           <h2 className="mb-3 text-lg font-semibold text-zinc-800">Upload Product Image</h2>
-          <UploadDropzone onFile={handleFile} />
+          <UploadDropzone onFile={handleFile} isLoading={ocrLoading} />
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-100">

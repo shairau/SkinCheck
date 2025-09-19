@@ -5,9 +5,11 @@ import clsx from "clsx";
 export function UploadDropzone({
   onFile,
   hint = "Supports JPG/PNG up to 10MB",
+  isLoading = false,
 }: {
   onFile: (file: File) => void;
   hint?: string;
+  isLoading?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
@@ -37,9 +39,21 @@ export function UploadDropzone({
       aria-label="Upload product image"
     >
       <div className="pointer-events-none flex flex-col items-center justify-center gap-2 text-center">
-        <div className="rounded-full bg-pink-100 p-3 text-xl">⬆️</div>
-        <p className="text-zinc-800 font-medium">Upload product image</p>
-        <p className="text-xs text-zinc-500">{hint}</p>
+        {isLoading ? (
+          <>
+            <div className="rounded-full bg-pink-100 p-3">
+              <div className="animate-spin h-6 w-6 border-2 border-pink-300 border-t-pink-600 rounded-full"></div>
+            </div>
+            <p className="text-zinc-800 font-medium">Processing image...</p>
+            <p className="text-xs text-zinc-500">Extracting product names</p>
+          </>
+        ) : (
+          <>
+            <div className="rounded-full bg-pink-100 p-3 text-xl">⬆️</div>
+            <p className="text-zinc-800 font-medium">Upload product image</p>
+            <p className="text-xs text-zinc-500">{hint}</p>
+          </>
+        )}
       </div>
 
       {preview && (
