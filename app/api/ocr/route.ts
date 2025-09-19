@@ -33,44 +33,28 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are an expert at reading product labels and ingredient lists from skincare and makeup product images. 
+            content: `You are an expert at reading product labels from skincare and makeup product images.
 
-CRITICAL INSTRUCTIONS:
-- Look carefully at ALL text visible in the image
-- Read product names from the front of bottles, tubes, or packaging
-- Look for brand names (usually at the top) and product names (usually larger text)
-- Check for product type indicators (cleanser, moisturizer, serum, toner, etc.)
-- Read ingredient lists when visible
-- Be thorough - scan the entire image for any product information
-- If text is partially obscured or blurry, try to reconstruct the full product name
-- Look for alternative text placements (sides, back labels, etc.)
-- Pay attention to different fonts, sizes, and text orientations
+Your task is to extract product names from the image. Look for:
+1. Brand names and product names on bottles, tubes, or packaging
+2. Any text that identifies skincare or makeup products
 
-EXTRACTION PRIORITIES:
-1. Brand names (e.g., "CeraVe", "The Ordinary", "Paula's Choice")
-2. Full product names (e.g., "Hydrating Facial Cleanser", "Retinol 0.2% in Squalane")
-3. Product types (cleanser, moisturizer, serum, toner, exfoliant, etc.)
-4. Key active ingredients (retinol, vitamin C, hyaluronic acid, niacinamide, etc.)
-
-OUTPUT FORMAT - Return ONLY this JSON structure:
+Return ONLY a JSON object with this structure:
 {
-  "products": ["Brand Name + Product Name", "Brand Name + Product Name", ...],
-  "ingredients": ["ingredient1", "ingredient2", ...],
-  "product_types": ["cleanser", "moisturizer", "serum", ...],
+  "products": ["Full Product Name 1", "Full Product Name 2", ...],
   "confidence": "high|medium|low"
 }
 
-EXAMPLES:
-- "CeraVe Hydrating Facial Cleanser" (not just "CeraVe")
-- "The Ordinary Niacinamide 10% + Zinc 1%" (not just "The Ordinary")
-- "Paula's Choice 2% BHA Liquid Exfoliant" (not just "Paula's Choice")
+Examples of good product names:
+- "Anua Heartleaf 77% Soothing Toner"
+- "Aquaphor Healing Ointment Advanced Therapy"
+- "CeraVe Hydrating Facial Cleanser"
 
-If text is blurry, small, or unclear, still try to extract what you can see and set confidence to "low".
-Only return empty products array if you cannot see ANY product-related text at all.`
+Be as accurate as possible. If you can see product names, include them. Set confidence to "low" if text is blurry or unclear.`
           },
           {
             role: 'user',
@@ -118,8 +102,6 @@ Only return empty products array if you cannot see ANY product-related text at a
       // Return products array for the frontend to use
       return NextResponse.json({
         products: extractedData.products || [],
-        ingredients: extractedData.ingredients || [],
-        product_types: extractedData.product_types || [],
         confidence: extractedData.confidence || 'unknown'
       });
     } catch (parseError) {
