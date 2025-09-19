@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import Navbar from "@/components/navbar"
 import ImageUpload from "@/components/image-upload"
+import { Stepper } from "@/components/Stepper"
+import { UploadDropzone } from "@/components/UploadDropzone"
+import { ProductChips } from "@/components/ProductChips"
 
 interface AnalysisResult {
   routine_rating: {
@@ -62,6 +65,8 @@ interface AnalysisResult {
 
 export default function Analyze() {
   const [products, setProducts] = useState("")
+  const [productChips, setProductChips] = useState<string[]>([])
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -69,15 +74,30 @@ export default function Analyze() {
 
   const handleImageProcessed = (extractedProducts: string[], confidence: string) => {
     if (extractedProducts.length > 0) {
-      // Add extracted products to existing products or replace if empty
-      const currentProducts = products.trim() 
-        ? products.split(/[,\n]/).map(p => p.trim()).filter(p => p.length > 0)
-        : []
-      
-      const combinedProducts = [...currentProducts, ...extractedProducts]
-      setProducts(combinedProducts.join(', '))
+      // Add extracted products to chips
+      setProductChips(prev => [...prev, ...extractedProducts])
       setOcrConfidence(confidence)
       setError("")
+      setStep(2)
+    }
+  }
+
+  const handleFile = async (file: File) => {
+    // Call your existing OCR endpoint
+    const body = new FormData()
+    body.append("image", file)
+    try {
+      const response = await fetch("/api/ocr", { method: "POST", body })
+      const result = await response.json()
+      
+      if (result.products && result.products.length > 0) {
+        handleImageProcessed(result.products, result.confidence || 'unknown')
+      } else {
+        setError('No product names could be extracted from the image. Please try a clearer image or enter products manually.')
+      }
+    } catch (error) {
+      console.error('Error processing image:', error)
+      setError('Failed to extract text from image. Please try again.')
     }
   }
 
@@ -86,21 +106,16 @@ export default function Analyze() {
   }
 
   const handleAnalyze = async () => {
-    if (!products.trim()) return
+    if (productChips.length === 0) return
 
     setLoading(true)
     setError("")
+    setStep(3)
     try {
-      // Split by comma or newline, then clean up
-      const productList = products
-        .split(/[,\n]/)
-        .map(p => p.trim())
-        .filter(p => p.length > 0)
-      
       const response = await fetch("/api/compatibility", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ products: productList }),
+        body: JSON.stringify({ products: productChips }),
       })
 
       if (response.ok) {
@@ -161,72 +176,55 @@ export default function Analyze() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Analyze Your Routine</h1>
           <p className="text-lg text-gray-600 text-pretty">
-            Enter your skincare and makeup products or upload an image to extract product names.
+            Upload a photo or list your products to get a personalized review.
           </p>
         </div>
 
-        {/* Image Upload Section */}
-        <Card className="bg-white shadow-lg rounded-2xl mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">Upload Product Image</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ImageUpload 
-              onImageProcessed={handleImageProcessed}
-              onError={handleImageError}
-            />
-          </CardContent>
-        </Card>
+        <Stepper step={step} />
 
         {/* Error Display */}
         {error && (
-          <Card className="bg-red-50 border-red-200 mb-6">
-            <CardContent className="p-4">
-              <p className="text-red-800 text-sm">{error}</p>
-            </CardContent>
-          </Card>
+          <div className="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4">
+            <p className="text-red-800 text-sm">{error}</p>
+          </div>
         )}
 
         {/* OCR Confidence Display */}
         {ocrConfidence && ocrConfidence !== 'unknown' && (
-          <Card className={`mb-6 ${
+          <div className={`mb-6 rounded-2xl border p-4 ${
             ocrConfidence === 'high' ? 'bg-green-50 border-green-200' :
             ocrConfidence === 'medium' ? 'bg-yellow-50 border-yellow-200' :
             'bg-orange-50 border-orange-200'
           }`}>
-            <CardContent className="p-4">
-              <p className={`text-sm ${
-                ocrConfidence === 'high' ? 'text-green-800' :
-                ocrConfidence === 'medium' ? 'text-yellow-800' :
-                'text-orange-800'
-              }`}>
-                📸 Image recognition confidence: <strong>{ocrConfidence}</strong>
-                {ocrConfidence === 'low' && ' - Please review the extracted product names and edit if needed.'}
-              </p>
-            </CardContent>
-          </Card>
+            <p className={`text-sm ${
+              ocrConfidence === 'high' ? 'text-green-800' :
+              ocrConfidence === 'medium' ? 'text-yellow-800' :
+              'text-orange-800'
+            }`}>
+              📸 Image recognition confidence: <strong>{ocrConfidence}</strong>
+              {ocrConfidence === 'low' && ' - Please review the extracted product names and edit if needed.'}
+            </p>
+          </div>
         )}
 
-        <Card className="bg-white shadow-lg rounded-2xl mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">Product List</CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <Textarea
-              placeholder="List your products here, or use the image upload above to extract product names..."
-              value={products}
-              onChange={(e) => setProducts(e.target.value)}
-              className="min-h-32 mb-6 border-gray-200 rounded-xl"
-            />
-            <Button
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-100 mb-6">
+          <h2 className="mb-3 text-lg font-semibold text-zinc-800">Upload Product Image</h2>
+          <UploadDropzone onFile={handleFile} />
+        </section>
+
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-100">
+          <h2 className="mb-3 text-lg font-semibold text-zinc-800">Product List</h2>
+          <ProductChips value={productChips} onChange={setProductChips} />
+          <div className="mt-4 flex justify-end">
+            <button
               onClick={handleAnalyze}
-              disabled={loading || !products.trim()}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-xl"
+              disabled={!productChips.length || loading}
+              className="rounded-full bg-pink-500 px-5 py-2.5 text-white shadow-sm transition hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Analyzing..." : "Analyze Routine"}
-            </Button>
-          </CardContent>
-        </Card>
+              {loading ? "Analyzing…" : "Analyze Routine"}
+            </button>
+          </div>
+        </section>
 
         {results && (
           <div className="space-y-8">
