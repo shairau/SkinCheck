@@ -33,26 +33,44 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
             content: `You are an expert at reading product labels and ingredient lists from skincare and makeup product images. 
 
-Your task is to extract product names and ingredients from the image. Focus on:
-1. Brand names and product names
-2. Key active ingredients (retinol, vitamin C, hyaluronic acid, etc.)
-3. Product types (cleanser, moisturizer, serum, etc.)
+CRITICAL INSTRUCTIONS:
+- Look carefully at ALL text visible in the image
+- Read product names from the front of bottles, tubes, or packaging
+- Look for brand names (usually at the top) and product names (usually larger text)
+- Check for product type indicators (cleanser, moisturizer, serum, toner, etc.)
+- Read ingredient lists when visible
+- Be thorough - scan the entire image for any product information
+- If text is partially obscured or blurry, try to reconstruct the full product name
+- Look for alternative text placements (sides, back labels, etc.)
+- Pay attention to different fonts, sizes, and text orientations
 
-Return ONLY a JSON object with this structure:
+EXTRACTION PRIORITIES:
+1. Brand names (e.g., "CeraVe", "The Ordinary", "Paula's Choice")
+2. Full product names (e.g., "Hydrating Facial Cleanser", "Retinol 0.2% in Squalane")
+3. Product types (cleanser, moisturizer, serum, toner, exfoliant, etc.)
+4. Key active ingredients (retinol, vitamin C, hyaluronic acid, niacinamide, etc.)
+
+OUTPUT FORMAT - Return ONLY this JSON structure:
 {
-  "products": ["Product Name 1", "Product Name 2", ...],
+  "products": ["Brand Name + Product Name", "Brand Name + Product Name", ...],
   "ingredients": ["ingredient1", "ingredient2", ...],
-  "product_types": ["type1", "type2", ...]
+  "product_types": ["cleanser", "moisturizer", "serum", ...],
+  "confidence": "high|medium|low"
 }
 
-If you cannot clearly read text from the image, return an empty products array.
-Be precise and only include clearly readable product names.`
+EXAMPLES:
+- "CeraVe Hydrating Facial Cleanser" (not just "CeraVe")
+- "The Ordinary Niacinamide 10% + Zinc 1%" (not just "The Ordinary")
+- "Paula's Choice 2% BHA Liquid Exfoliant" (not just "Paula's Choice")
+
+If text is blurry, small, or unclear, still try to extract what you can see and set confidence to "low".
+Only return empty products array if you cannot see ANY product-related text at all.`
           },
           {
             role: 'user',
@@ -101,7 +119,8 @@ Be precise and only include clearly readable product names.`
       return NextResponse.json({
         products: extractedData.products || [],
         ingredients: extractedData.ingredients || [],
-        product_types: extractedData.product_types || []
+        product_types: extractedData.product_types || [],
+        confidence: extractedData.confidence || 'unknown'
       });
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', parseError);

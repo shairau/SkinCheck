@@ -65,8 +65,9 @@ export default function Analyze() {
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [ocrConfidence, setOcrConfidence] = useState("")
 
-  const handleImageProcessed = (extractedProducts: string[]) => {
+  const handleImageProcessed = (extractedProducts: string[], confidence: string) => {
     if (extractedProducts.length > 0) {
       // Add extracted products to existing products or replace if empty
       const currentProducts = products.trim() 
@@ -75,6 +76,7 @@ export default function Analyze() {
       
       const combinedProducts = [...currentProducts, ...extractedProducts]
       setProducts(combinedProducts.join(', '))
+      setOcrConfidence(confidence)
       setError("")
     }
   }
@@ -181,6 +183,26 @@ export default function Analyze() {
           <Card className="bg-red-50 border-red-200 mb-6">
             <CardContent className="p-4">
               <p className="text-red-800 text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* OCR Confidence Display */}
+        {ocrConfidence && ocrConfidence !== 'unknown' && (
+          <Card className={`mb-6 ${
+            ocrConfidence === 'high' ? 'bg-green-50 border-green-200' :
+            ocrConfidence === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+            'bg-orange-50 border-orange-200'
+          }`}>
+            <CardContent className="p-4">
+              <p className={`text-sm ${
+                ocrConfidence === 'high' ? 'text-green-800' :
+                ocrConfidence === 'medium' ? 'text-yellow-800' :
+                'text-orange-800'
+              }`}>
+                📸 Image recognition confidence: <strong>{ocrConfidence}</strong>
+                {ocrConfidence === 'low' && ' - Please review the extracted product names and edit if needed.'}
+              </p>
             </CardContent>
           </Card>
         )}

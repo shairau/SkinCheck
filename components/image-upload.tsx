@@ -6,7 +6,7 @@ import { Card } from './ui/card';
 import { Upload, X } from 'lucide-react';
 
 interface ImageUploadProps {
-  onImageProcessed: (products: string[]) => void;
+  onImageProcessed: (products: string[], confidence: string) => void;
   onError: (error: string) => void;
 }
 
@@ -86,7 +86,7 @@ export default function ImageUpload({ onImageProcessed, onError }: ImageUploadPr
         return;
       }
       
-      onImageProcessed(result.products);
+      onImageProcessed(result.products, result.confidence || 'unknown');
     } catch (error) {
       console.error('Error processing image:', error);
       onError('Failed to extract text from image. Please try again.');
