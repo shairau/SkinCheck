@@ -20,6 +20,11 @@ export function UploadDropzone({
     if (!f) return;
     setPreview(URL.createObjectURL(f));
     onFile(f);
+    
+    // Clear preview after a short delay to show it was processed
+    setTimeout(() => {
+      setPreview(null);
+    }, 2000);
   }, [onFile]);
 
   return (

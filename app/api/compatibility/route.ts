@@ -231,7 +231,21 @@ export async function POST(request: NextRequest) {
                 ], \
                 \"global_observations\": string[] (max 5 bullets), \
                 \"suggestions\": string[] (max 6 prioritized items), \
-                \"makeup_skincare_synergy\": string[] (2-4 technique bullets) \
+                \"makeup_skincare_synergy\": string[] (2-4 technique bullets), \
+                \"product_alternatives\": [ \
+                  { \
+                    \"current_product\": string, \
+                    \"issue\": string (why it needs replacement), \
+                    \"alternatives\": [ \
+                      { \
+                        \"name\": string, \
+                        \"why_better\": string, \
+                        \"brand\": string, \
+                        \"price_range\": string \
+                      } \
+                    ] \
+                  } \
+                ] \
               } \
             } \
             PRODUCT NAME QUALITY (MANDATORY): \
@@ -294,7 +308,14 @@ export async function POST(request: NextRequest) {
             - Provide specific, science-based explanations \
             - Include actionable recommendations for improvement \
             - Be honest about limitations and potential issues \
-            - Focus on what will actually make a difference for skin health"
+            - Focus on what will actually make a difference for skin health \
+            PRODUCT ALTERNATIVES: \
+            - Suggest alternatives when products have significant issues (high irritation, poor compatibility, outdated formulations) \
+            - Include 2-3 alternative products per problematic item \
+            - Explain why alternatives are better (ingredients, pH, compatibility, etc.) \
+            - Include brand names and approximate price ranges \
+            - Focus on accessible, well-formulated alternatives \
+            - Only suggest replacements when there are genuine improvements to be made"
         },
         {
           role: "user",

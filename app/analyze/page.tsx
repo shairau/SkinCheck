@@ -64,6 +64,16 @@ interface AnalysisResult {
     global_observations: string[]
     suggestions: string[]
     makeup_skincare_synergy?: string[]
+    product_alternatives?: Array<{
+      current_product: string
+      issue: string
+      alternatives: Array<{
+        name: string
+        why_better: string
+        brand: string
+        price_range: string
+      }>
+    }>
   }
 }
 
@@ -301,6 +311,38 @@ export default function Analyze() {
                 <ul className="list-disc pl-5 space-y-2 text-neutral-800">
                   {results.analysis.suggestions.map((s:string,i:number)=><li key={i}>{s}</li>)}
                 </ul>
+              </Section>
+            ) : null}
+
+            {/* PRODUCT ALTERNATIVES */}
+            {results?.analysis?.product_alternatives?.length ? (
+              <Section title="Product Alternatives" subtitle="Better options for problematic products.">
+                <div className="space-y-6">
+                  {results.analysis.product_alternatives.map((alt:any, i:number) => (
+                    <div key={i} className="rounded-xl border border-amber-200 bg-amber-50/50 p-5">
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-amber-900 mb-1">{alt.current_product}</h4>
+                        <p className="text-sm text-amber-800">{alt.issue}</p>
+                      </div>
+                      <div className="space-y-3">
+                        {alt.alternatives.map((option:any, j:number) => (
+                          <div key={j} className="rounded-lg border border-amber-200 bg-white p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <h5 className="font-medium text-neutral-900">{option.name}</h5>
+                                <p className="text-sm text-neutral-600">{option.brand}</p>
+                              </div>
+                              <span className="text-sm font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                                {option.price_range}
+                              </span>
+                            </div>
+                            <p className="text-sm text-neutral-700">{option.why_better}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Section>
             ) : null}
           </div>
