@@ -54,18 +54,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Hero Image */}
-        <div className="w-full h-96 rounded-2xl overflow-hidden shadow-xl border-4 border-gradient-to-r from-[#ffd7e0] to-[#cfeee0] relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#ffd7e0] to-[#cfeee0] p-1 rounded-2xl">
-            <div className="w-full h-full rounded-xl overflow-hidden">
-              <img
-                src="/skincare-products-bottles-serums-moisturizers-on-c.jpg"
-                alt="Skincare products arrangement"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   )
