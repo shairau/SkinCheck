@@ -33,24 +33,15 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are an expert at reading product labels from skincare and makeup product images. You MUST read ALL visible text regardless of orientation.
+            content: `You are an expert at reading product labels from skincare and makeup product images.
 
 Your task is to extract product names from the image. Look for:
 1. Brand names and product names on bottles, tubes, or packaging
 2. Any text that identifies skincare or makeup products
-3. CRITICAL: Read text in ANY orientation - rotated 90°, 180°, 270°, vertical, diagonal, sideways, or on curved surfaces
-4. Look carefully for products that may be lying sideways or at angles
-5. Read text in any language (English, Korean, Japanese, French, Spanish, etc.)
-
-IMPORTANT: 
-- Examine EVERY product in the image carefully
-- Some products may be lying sideways - read their labels anyway
-- Look for sunscreen products, toners, creams, serums, etc.
-- Even if text is rotated or sideways, you can still read it
 
 Return ONLY a JSON object with this structure:
 {
@@ -64,7 +55,6 @@ Examples of good product names:
 - "CeraVe Hydrating Facial Cleanser"
 - "Beauty of Joseon Relief Sun: Rice + Probiotics"
 - "Round Lab 1025 Dokdo Light Cream"
-- "Beauty of Joseon Revive Eye Serum: Ginseng + Retinal"
 
 Be as accurate as possible. If you can see product names, include them. Set confidence to "low" if text is blurry or unclear.`
           },
@@ -73,7 +63,7 @@ Be as accurate as possible. If you can see product names, include them. Set conf
             content: [
               {
                 type: 'text',
-                text: 'Extract ALL product names from this skincare/makeup product image. Look carefully for products that may be lying sideways or rotated. Read every label you can see, including sunscreen products, toners, creams, and serums.'
+                text: 'Extract product names from this skincare/makeup product image.'
               },
               {
                 type: 'image_url',
